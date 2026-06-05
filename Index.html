@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Kilroid vs Glitch — K&G University | Slam + Trash Talk AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      background: linear-gradient(145deg, #1a5f2a 0%, #0e3a1a 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive;
+      padding: 20px;
+      transition: background 0.3s;
+    }
+
+    body.adult-mode {
+      background: linear-gradient(145deg, #1a1a2e 0%, #0a0a1a 100%);
+    }
+
+    body.adult-mode .game-container {
+      background: rgba(0, 0, 0, 0.85);
+      box-shadow: 0 0 24px #ff004c;
+    }
+
+    body.adult-mode .btn-hoop {
+      background: #d00000;
+      color: #fff;
+      box-shadow: 0 5px 0 #6a0000;
+    }
+
+    body.adult-mode .player-card {
+      background: #2b2b2b;
+      color: #ffd966;
+      box-shadow: 0 12px 0 #5a3e1b;
+    }
+
+    body.adult-mode .speech-bubble {
+      background: #1e1e1e;
+      color: #ffaa66;
+      box-shadow: 4px 4px 0 #ff6600;
+    }
+
+    .game-container {
+      max-width: 1400px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      border-radius: 80px 80px 60px 60px;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
+      padding: 20px 25px 30px;
+      position: relative;
+      transition: 0.2s;
+    }
+
+    .gear-icon {
+      position: absolute;
+      top: 25px;
+      right: 30px;
+      font-size: 32px;
+      cursor: pointer;
+      background: #ffcd7e;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px black;
+      transition: transform 0.2s;
+      z-index: 20;
+    }
+
+    .gear-icon:hover {
+      transform: rotate(20deg) scale(1.05);
+      background: gold;
+    }
+
+    .settings-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .settings-card {
+      background: #fff2df;
+      border-radius: 60px;
+      max-width: 550px;
+      width: 90%;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 20px 30px black;
+      font-family: monospace;
+    }
+
+    .settings-card h3 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .settings-card input,
+    .settings-card select {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border-radius: 50px;
+      border: 1px solid #ccaa66;
+      font-size: 1rem;
+    }
+
+    .settings-card button {
+      background: #ffaa44;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 40px;
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .close-modal {
+      background: #aa6644;
+      color: white;
+      margin-top: 15px;
+    }
+
+    .city-selector {
+      margin: 15px 0;
+    }
+
+    .adult-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .court {
+      border-radius: 70px 70px 50px 50px;
+      padding: 20px 15px 15px;
+      box-shadow: inset 0 0 0 5px #f0a42a, inset 0 0 0 12px #ffcf7a, 0 10px 20px rgba(0, 0, 0, 0.3);
+      transition: background-image 0.3s, background-color 0.2s;
+      background-size: cover;
+      background-position: center;
+      background-blend-mode: overlay;
+    }
+
+    .court-bg-default {
+      background-color: #f6b83d;
+      background-image: radial-gradient(circle at 25% 40%, rgba(255, 215, 130, 0.6) 2%, transparent 2.5%);
+      background-size: 35px 35px;
+    }
+
+    canvas {
+      border-radius: 60px;
+      box-shadow: 0 10px 18px black;
+      width: 100%;
+      height: auto;
+      background: #6f4f2e;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .players-row {
+      display: flex;
+      gap: 25px;
+      margin: 20px 10px;
+      flex-wrap: wrap;
+    }
+
+    .player-card {
+      flex: 1;
+      background: #fff7e8;
+      border-radius: 65px;
+      padding: 20px 15px;
+      text-align: center;
+      box-shadow: 0 12px 0 #c29b3b;
+      transition: 0.2s;
+      border: 2px solid #ffcd7e;
+    }
+
+    .player-card.active-turn {
+      background: #fff1b5;
+      box-shadow: 0 0 0 4px gold, 0 12px 0 #c29b3b;
+      transform: scale(1.01);
+    }
+
+    .player-card.focus-user {
+      transform: scale(1.02) rotate(1deg);
+      box-shadow: 0 0 0 4px #ffdd88, 0 0 0 8px #ffaa33;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 15px;
+      background: #e0bc82;
+      border-radius: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 5px solid #ffb347;
+      cursor: pointer;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-placeholder {
+      font-size: 60px;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin: 5px 0;
+      text-shadow: 2px 2px 0 #c27e2e;
+    }
+
+    .score {
+      font-size: 2.5rem;
+      background: #2d1f0c;
+      display: inline-block;
+      padding: 0 20px;
+      border-radius: 50px;
+      color: #f9d56e;
+      margin: 5px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin: 20px 0 10px;
+    }
+
+    .btn-hoop {
+      font-size: 1.4rem;
+      padding: 12px 20px;
+      font-weight: bold;
+      border-radius: 60px;
+      border: none;
+      background: #ffb142;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #9b5e1a;
+      width: 170px;
+      transition: 0.05s linear;
+    }
+
+    .turn-indicator {
+      font-size: 1.5rem;
+      background: #ffd966;
+      display: inline-block;
+      padding: 8px 25px;
+      border-radius: 40px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .speech-bubble {
+      background: white;
+      border-radius: 40px;
+      padding: 10px;
+      max-width: 220px;
+      margin: 10px auto;
+      font-size: 1rem;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-chat-panel {
+      margin-top: 20px;
+      background: #2d2b1ee0;
+      border-radius: 50px;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+    }
+
+    .chat-log {
+      background: #1e1b0fcc;
+      border-radius: 40px;
+      padding: 12px;
+      height: 170px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      color: #ffecb3;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chat-message {
+      padding: 5px 12px;
+      border-radius: 30px;
+      background: #3f341d;
+      width: fit-content;
+      max-width: 85%;
+      margin: 2px 0;
+    }
+
+    .chat-message.user {
+      background: #4d7c2e;
+      align-self: flex-end;
+    }
+
+    .chat-message.kilroid {
+      background: #b64516;
+      align-self: flex-start;
+      border-left: 6px solid #ffaa44;
+    }
+
+    .chat-message.glitch {
+      background: #3f6b8f;
+      align-self: flex-start;
+      border-left: 6px solid #aaddff;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chat-input-area input {
+      flex: 3;
+      padding: 10px 18px;
+      border-radius: 40px;
+      border: none;
+      background: #fff3da;
+    }
+
+    .chat-input-area button {
+      background: #ffaa55;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .photos-gallery {
+      margin-top: 20px;
+      background: #eab676b3;
+      border-radius: 50px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .photo-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .photo-card {
+      background: #fff0c8;
+      border-radius: 30px;
+      width: 110px;
+      padding: 8px;
+      box-shadow: 0 6px 0 #aa763a;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 20px;
+    }
+
+    .upload-btn {
+      background: #ffc164;
+      border: none;
+      border-radius: 40px;
+      padding: 3px 8px;
+      margin-top: 5px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.7rem;
+      color: #ffecb3;
+    }
+
+    @keyframes bounceAnim {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0); }
+    }
+
+    .bounce-effect {
+      animation: bounceAnim 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="gear-icon" id="gearBtn">⚙️</div>
+  <div class="court" id="courtElement">
+    <canvas id="gameCanvas" width="900" height="380" style="width:100%; max-width:900px; aspect-ratio:900/380"></canvas>
+    <div class="players-row">
+      <div class="player-card" id="kilroidCard">
+        <div class="avatar" id="kilroidAvatar"><div class="avatar-placeholder">🦖</div></div>
+        <h2>⚡ KILROID ⚡</h2>
+        <div class="height-badge" style="background:#f4a261; display:inline-block; padding:4px 15px; border-radius:40px;">🎈 SHORTY 🎈</div>
+        <div class="score" id="kilroidScore">0</div>
+        <div class="speech-bubble" id="kilroidBubble">🤪 Let's play!</div>
+      </div>
+      <div class="player-card" id="glitchCard">
+        <div class="avatar" id="glitchAvatar"><div class="avatar-placeholder">🦒✨</div></div>
+        <h2>🌀 GLITCH 🌀</h2>
+        <div class="height-badge" style="background:#f4a261; display:inline-block; padding:4px 15px; border-radius:40px;">🌟 TALL SIS 🌟</div>
+        <div class="score" id="glitchScore">0</div>
+        <div class="speech-bubble" id="glitchBubble">💥 Bring it, lil bro!</div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <div class="turn-indicator" id="turnText">🔥 KILROID's TURN 🔥</div>
+      <div class="action-buttons"><button class="btn-hoop" id="slamBtn">🏀 SLAM DUNK 🏀</button><button class="btn-hoop" id="threeBtn">🎯 3-POINTER 🎯</button></div>
+    </div>
+  </div>
+
+  <div class="ai-chat-panel">
+    <div class="chat-log" id="chatLog"><div class="chat-message kilroid">👋 I'm Kilroid! Talk trash or just vibe!</div><div class="chat-message glitch">✨ And Glitch! Use gear ⚙️ for Gemini AI & adult mode!</div></div>
+    <div class="chat-input-area"><input type="text" id="chatInput" placeholder="💬 Chat with Kilroid & Glitch..."><button id="sendChatBtn">Send</button><button id="micChatBtn">🎤 Speak</button><button id="clearChatBtn">Clear</button></div>
+  </div>
+
+  <div class="photos-gallery"><div class="gallery-title">📸 4 SILLY PHOTOS (click to replace)</div><div class="photo-strip" id="photoStrip"></div></div>
+  <footer>🏆 K&G UNIVERSITY • SUPER SLAM • TRASH TALK • AI CHAT • ADULT MODE</footer>
+</div>
+
+<div id="settingsModal" class="settings-modal">
+  <div class="settings-card">
+    <h3>⚙️ ADULT MODE & BACKDROPS</h3>
+    <div class="adult-toggle"><label>🔞 ADULT MODE :</label><input type="checkbox" id="adultModeToggle"></div>
+    <div class="city-selector"><label>🌆 BACKGROUND (City / University)</label><select id="citySelect">
+      <option value="default">Classic Court</option>
+      <option value="K&G University">📚 K & G UNIVERSITY BANNER</option>
+      <option value="Harvard University">🎓 HARVARD UNIVERSITY (Ivy League)</option>
+      <option value="New York">🗽 New York Skyline</option>
+      <option value="Los Angeles">🌴 Los Angeles Skyline</option>
+      <option value="Chicago">🌬️ Chicago Skyline</option>
+      <option value="Houston">🚀 Houston Skyline</option>
+      <option value="Phoenix">☀️ Phoenix Skyline</option>
+      <option value="Philadelphia">🦅 Philadelphia Skyline</option>
+      <option value="San Antonio">🎸 San Antonio Skyline</option>
+      <option value="San Diego">🏄 San Diego Skyline</option>
+      <option value="Dallas">⭐ Dallas Skyline</option>
+      <option value="Cleveland">🏭 CLEVELAND Skyline</option>
+    </select></div>
+    <div style="margin:15px 0"><input type="password" id="modalApiKey" placeholder="🔑 Gemini API Key (optional for AI chat)"></div>
+    <button id="saveSettingsBtn">💾 SAVE SETTINGS</button>
+    <button id="closeModalBtn" class="close-modal">CLOSE</button>
+  </div>
+</div>
+
+<script>
+  (function(){
+    // ----- DOM elements -----
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 900; canvas.height = 380;
+    
+    let kilroidScore = 0, glitchScore = 0;
+    let currentTurn = "kilroid";
+    let isAnimating = false;
+    let adultMode = localStorage.getItem('adultMode') === 'true';
+    let geminiKey = localStorage.getItem('gemini_key') || "";
+    let currentBackground = localStorage.getItem('citySkyline') || "default";
+    
+    const hoop = { x: canvas.width/2, y: 78, radius: 14 };
+    const kilroidShootPos = { x: 140, y: canvas.height - 55 };
+    const glitchShootPos = { x: canvas.width - 140, y: canvas.height - 55 };
+    let ball = { active: false, x: 0, y: 0 };
+    
+    // ---------- TRASH TALK (fixed & improved taunts) ----------
+    const normalTrash = {
+      kilroid_make_dunk:["SUPER DUPER SLAM! 🌟","BOOMSHAKALAKA! 🦖","SHORT KING DUNK!"],
+      kilroid_make_three:["SWISHHH! FROM DOWNTOWN!","3 POINTS OF GLORY!","TOO EASY SISTER!"],
+      kilroid_miss_dunk:["OOPSIE! MY SHOE! 👟","AIRBALL LIKE A BALLOON!","TOO SHORT!"],
+      kilroid_miss_three:["BONK! HIT THE BACKBOARD!","I NEED STEPSTOOL!","NYEH NEXT TIME!"],
+      glitch_make_dunk:["TALL GIRL POWER SLAM! 💪","IN YOUR FACE SHORTY!","GLITCH DESTROY!"],
+      glitch_make_three:["SWISH AND GIGGLE! 🥳","LONG LEGS LONG SHOT!","BOOYAH!"],
+      glitch_miss_dunk:["BONK MY HEAD! 🤕","OOPSIE DAISY!","MY PONYTAIL!"],
+      glitch_miss_three:["BUTTER FINGERS! 🧈","TOO FAR! NEED LADDER!","SORRY NOT SORRY"]
+    };
+    
+    const adultTrash = {
+      kilroid_make_dunk:["GET REKT, SIS! 😈","SLAM THAT WEAK DEFENSE!","BOOM! CRUSHED IT!"],
+      kilroid_make_three:["DRAINED! TOO NASTY!","MONEY! 🤑","THAT'S RIGHT, WATCH AND LEARN"],
+      kilroid_miss_dunk:["DANG IT! STUPID RIM!","CRAP! WHIFFED!","MY BAD... NEXT TIME BETTER"],
+      kilroid_miss_three:["OH BLEEP! AIRBALL!","BRICK CITY!","FOCUS MAN!"],
+      glitch_make_dunk:["SIT DOWN, LIL BRO! 🔥","TOO EASY! RESPECT MY HEIGHT","GET DUNKED ON!"],
+      glitch_make_three:["BUCKETS! Y'ALL CAN'T GUARD ME","STEP BACK THREE! SPLASH","THAT'S GAME!"],
+      glitch_miss_dunk:["ARE YOU KIDDING ME?!","CLANK! UGH!","I'LL GET THE NEXT ONE"],
+      glitch_miss_three:["AIRBALL?! NO WAY!","THAT WAS UGLY","MY BAD, I'M RUSTY"]
+    };
+    
+    // taunt dictionary for opponent mocking missed shooter
+    const normalTaunt = {
+      kilroid_miss: { fromGlitch: ["🍭 Shorty airball! 🍭","Hehe too small!","👖 Stepstool needed!"] },
+      glitch_miss: { fromKilroid: ["🤣 Tall fail! Clumsy sis!","🎈 Big foot miss!","🦒 Too lanky to shoot!"] }
+    };
+    const adultTaunt = {
+      kilroid_miss: { fromGlitch: ["SIT DOWN MIDGET 💀","TRASH SHOT LIL BRO","WEAK SAUCE"] },
+      glitch_miss: { fromKilroid: ["LMAO TOWER OF FAIL","CLUMSY GIANT 🤡","GET REKT, TALL GIRL"] }
+    };
+    
+    function getTrash(player, shot, success){
+      let dict = adultMode ? adultTrash : normalTrash;
+      let key = `${player}_${shot}_${success?'make':'miss'}`;
+      let arr = dict[key] || (success ? ["Yay!"] : ["Oops!"]);
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    
+    function getMockingTaunt(missedPlayer){
+      if(missedPlayer === 'kilroid'){
+        let arr = adultMode ? adultTaunt.kilroid_miss.fromGlitch : normalTaunt.kilroid_miss.fromGlitch;
+        return arr[Math.floor(Math.random() * arr.length)];
+      } else {
+        let arr = adultMode ? adultTaunt.glitch_miss.fromKilroid : normalTaunt.glitch_miss.fromKilroid;
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+    }
+    
+    function speakMessage(player, msg){
+      if(!window.speechSynthesis) return;
+      let utterance = new SpeechSynthesisUtterance(msg);
+      utterance.rate = 0.9;
+      utterance.pitch = player === 'kilroid' ? 1.65 : 1.4;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
+    
+    function setBubble(player, msg, speak=true){
+      let bubble = player === 'kilroid' ? document.getElementById('kilroidBubble') : document.getElementById('glitchBubble');
+      bubble.innerHTML = `💬 ${msg} 💬`;
+      if(speak) speakMessage(player, msg);
+      setTimeout(()=>{ if(bubble.innerHTML.includes(msg)) bubble.innerHTML = player==='kilroid' ? "🏀 dribble 🏀" : "✨ hoop dreams ✨"; }, 2800);
+    }
+    
+    function drawCourtAndBall(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "#b97f44";
+      ctx.fillRect(hoop.x-35, hoop.y-42, 70, 12);
+      ctx.fillStyle = "#5e3a1e";
+      ctx.fillRect(hoop.x-28, hoop.y-35, 56, 8);
+      ctx.beginPath();
+      ctx.arc(hoop.x, hoop.y, hoop.radius, 0, Math.PI*2);
+      ctx.strokeStyle = "#ffaa33";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+      ctx.fillStyle = "#e35112";
+      ctx.fillRect(hoop.x-13, hoop.y+2, 26, 8);
+      ctx.fillStyle = "#ff7722";
+      ctx.fillRect(hoop.x-8, hoop.y+5, 16, 20);
+      for(let i=0;i<12;i++){
+        ctx.beginPath();
+        ctx.moveTo(hoop.x+Math.sin(i)*12, hoop.y+Math.cos(i)*12+4);
+        ctx.lineTo(hoop.x+Math.sin(i)*7, hoop.y+32);
+        ctx.strokeStyle = "#ccc9b0";
+        ctx.lineWidth=1.5;
+        ctx.stroke();
+      }
+      if(ball.active){
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, 11, 0, Math.PI*2);
+        ctx.fillStyle="#ff8c42";
+        ctx.fill();
+        ctx.fillStyle="#4a2a1a";
+        ctx.beginPath();
+        ctx.moveTo(ball.x-4, ball.y-2);
+        ctx.lineTo(ball.x, ball.y+5);
+        ctx.lineTo(ball.x+4, ball.y-2);
+        ctx.fill();
+      }
+    }
+    
+    function animateBall(shooter, shotType, success){
+      if(isAnimating) return;
+      isAnimating = true;
+      const start = shooter === 'kilroid' ? kilroidShootPos : glitchShootPos;
+      const end = { x: hoop.x, y: hoop.y + (success ? 0 : 25) };
+      let startTime = performance.now();
+      function step(now){
+        let t = Math.min(1, (now-startTime)/520);
+        let ease = 1-Math.pow(1-t,3);
+        let midX = start.x + (end.x-start.x)*ease;
+        let arc = -Math.sin(t*Math.PI)*55;
+        let yPos = start.y + (end.y-start.y)*ease + arc;
+        ball.active = true;
+        ball.x = midX;
+        ball.y = yPos;
+        drawCourtAndBall();
+        if(t<1) requestAnimationFrame(step);
+        else {
+          ball.active=false;
+          drawCourtAndBall();
+          finishShot(shooter, shotType, success);
+          isAnimating=false;
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    
+    function finishShot(shooter, shotType, success){
+      let points = shotType === 'dunk' ? 2 : 3;
+      if(success){
+        if(shooter === 'kilroid'){
+          kilroidScore += points;
+          updateScores();
+          setBubble('kilroid', getTrash('kilroid', shotType, true), true);
+          let mocking = getMockingTaunt('kilroid');
+          setBubble('glitch', `😏 ${mocking} 😏`, false);
+        } else {
+          glitchScore += points;
+          updateScores();
+          setBubble('glitch', getTrash('glitch', shotType, true), true);
+          let mocking = getMockingTaunt('glitch');
+          setBubble('kilroid', `😭 ${mocking} 😭`, false);
+        }
+        document.getElementById(shooter+'Card').classList.add('bounce-effect');
+        setTimeout(()=> document.getElementById(shooter+'Card').classList.remove('bounce-effect'), 300);
+      } else {
+        if(shooter === 'kilroid'){
+          setBubble('kilroid', getTrash('kilroid', shotType, false), true);
+          let mocking = getMockingTaunt('kilroid');
+          setBubble('glitch', `😂 ${mocking} 😂`, false);
+        } else {
+          setBubble('glitch', getTrash('glitch', shotType, false), true);
+          let mocking = getMockingTaunt('glitch');
+          setBubble('kilroid', `🤣 ${mocking} 🤣`, false);
+        }
+      }
+      currentTurn = currentTurn === 'kilroid' ? 'glitch' : 'kilroid';
+      updateTurnUI();
+      drawCourtAndBall();
+    }
+    
+    function updateScores(){
+      document.getElementById('kilroidScore').innerText = kilroidScore;
+      document.getElementById('glitchScore').innerText = glitchScore;
+    }
+    
+    function updateTurnUI(){
+      let turnDiv = document.getElementById('turnText');
+      if(currentTurn === 'kilroid'){
+        turnDiv.innerHTML = '🔥 KILROID\'s TURN 🔥';
+        document.getElementById('kilroidCard').classList.add('active-turn');
+        document.getElementById('glitchCard').classList.remove('active-turn');
+      } else {
+        turnDiv.innerHTML = '🌀 GLITCH\'s TURN 🌀';
+        document.getElementById('glitchCard').classList.add('active-turn');
+        document.getElementById('kilroidCard').classList.remove('active-turn');
+      }
+    }
+    
+    function attemptShot(type){
+      if(isAnimating) return;
+      let success = Math.random() < (type === 'dunk' ? 0.7 : 0.48);
+      animateBall(currentTurn, type, success);
+    }
+    
+    function setBackground(option){
+      const courtDiv = document.getElementById('courtElement');
+      courtDiv.classList.remove('court-bg-default');
+      if(option === 'default'){
+        courtDiv.style.backgroundImage = '';
+        courtDiv.classList.add('court-bg-default');
+        return;
+      }
+      let query = '';
+      if(option === 'K&G University'){
+        query = 'university campus ivy banner K&G letters';
+      } else if(option === 'Harvard University'){
+        query = 'Harvard University red brick campus ivy';
+      } else {
+        query = `${option} skyline cityscape at dusk vibrant`;
+      }
+      courtDiv.style.backgroundImage = `url('https://source.unsplash.com/featured/1600x600/?${encodeURIComponent(query)}')`;
+      courtDiv.style.backgroundSize = 'cover';
+      courtDiv.style.backgroundPosition = 'center 30%';
+    }
+    
+    function applyAdultMode(){
+      if(adultMode) document.body.classList.add('adult-mode');
+      else document.body.classList.remove('adult-mode');
+      localStorage.setItem('adultMode', adultMode);
+    }
+    
+    // GEMINI AI
+    async function callGemini(userMsg){
+      if(!geminiKey){
+        addChatMessage("system", "⚠️ No Gemini API key! Click gear ⚙️ and add your key.", null);
+        return;
+      }
+      const prompt = `You are Kilroid (5yo short energetic boy) or Glitch (6yo taller sister). Answer as ONE character, very short, funny, emojis. Start with "Kilroid:" or "Glitch:". Adult mode: ${adultMode ? "ON (slightly edgy playful trash talk)" : "OFF (cute & silly)"}. User: "${userMsg}"`;
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json();
+        let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Huh? I'm ballin'! 🏀";
+        let character = reply.includes("Kilroid:") ? "kilroid" : (reply.includes("Glitch:") ? "glitch" : "kilroid");
+        let clean = reply.replace(/^(Kilroid:|Glitch:)/i, "").trim();
+        addChatMessage(character, clean);
+        focusCharacterAttention(character);
+        setBubble(character, clean, true);
+      } catch(e){ addChatMessage("system", "AI error: check key or network", null); }
+    }
+    
+    function addChatMessage(sender, text){
+      let log = document.getElementById('chatLog');
+      let div = document.createElement('div');
+      if(sender === 'user'){ div.className='chat-message user'; div.innerText = `🧑 You: ${text}`; }
+      else if(sender === 'kilroid'){ div.className='chat-message kilroid'; div.innerText = `🦖 Kilroid: ${text}`; }
+      else if(sender === 'glitch'){ div.className='chat-message glitch'; div.innerText = `🦒 Glitch: ${text}`; }
+      else { div.className='chat-message'; div.innerText = text; }
+      log.appendChild(div); log.scrollTop = log.scrollHeight;
+    }
+    
+    function focusCharacterAttention(character){
+      let kil = document.getElementById('kilroidCard'), gli = document.getElementById('glitchCard');
+      kil.classList.remove('focus-user'); gli.classList.remove('focus-user');
+      if(character === 'kilroid') kil.classList.add('focus-user');
+      else gli.classList.add('focus-user');
+      setTimeout(()=>{ kil.classList.remove('focus-user'); gli.classList.remove('focus-user'); }, 1500);
+    }
+    
+    // ----- PHOTO GALLERY & AVATARS -----
+    function setupPhotoGallery(){
+      let strip = document.getElementById('photoStrip');
+      for(let i=1;i<=4;i++){
+        let div = document.createElement('div'); div.className='photo-card';
+        let img = document.createElement('img'); img.src = `https://placehold.co/200x200/fdebb3/a55d2a?text=📸+${i}`;
+        let upBtn = document.createElement('button'); upBtn.innerText='📷 replace'; upBtn.className='upload-btn';
+        let fileInput = document.createElement('input'); fileInput.type='file'; fileInput.accept='image/*'; fileInput.style.display='none';
+        upBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => { if(e.target.files[0]){ let r=new FileReader(); r.onload=(ev)=>{ img.src=ev.target.result; }; r.readAsDataURL(e.target.files[0]); } };
+        div.appendChild(img); div.appendChild(upBtn); div.appendChild(fileInput); strip.appendChild(div);
+      }
+    }
+    
+    function setupAvatar(divId){
+      let av = document.getElementById(divId);
+      let inp = document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.style.display='none';
+      let placeholder = av.querySelector('.avatar-placeholder');
+      av.onclick = () => inp.click();
+      inp.onchange = (e) => { if(e.target.files[0]){ let r=new FileReader(); r.onload=(ev)=>{ let img=document.createElement('img'); img.src=ev.target.result; if(placeholder) placeholder.style.display='none'; av.innerHTML=''; av.appendChild(img); }; r.readAsDataURL(e.target.files[0]); } };
+      av.appendChild(inp);
+    }
+    
+    // EVENT LISTENERS
+    document.getElementById('slamBtn').onclick = () => attemptShot('dunk');
+    document.getElementById('threeBtn').onclick = () => attemptShot('three');
+    document.getElementById('sendChatBtn').onclick = () => { let inp=document.getElementById('chatInput'); let msg=inp.value.trim(); if(msg){ addChatMessage('user',msg); inp.value=''; callGemini(msg); } };
+    document.getElementById('clearChatBtn').onclick = () => { document.getElementById('chatLog').innerHTML=''; addChatMessage('kilroid','New chat! 🏀'); };
+    if('webkitSpeechRecognition' in window){
+      let recog = new webkitSpeechRecognition(); recog.continuous=false; recog.lang='en-US';
+      recog.onresult=(e)=>{ document.getElementById('chatInput').value = e.results[0][0].transcript; document.getElementById('sendChatBtn').click(); };
+      document.getElementById('micChatBtn').onclick = () => recog.start();
+    } else { document.getElementById('micChatBtn').onclick = () => alert("Speech not supported"); }
+    
+    const modal = document.getElementById('settingsModal');
+    document.getElementById('gearBtn').onclick = () => {
+      document.getElementById('modalApiKey').value = geminiKey;
+      document.getElementById('adultModeToggle').checked = adultMode;
+      document.getElementById('citySelect').value = currentBackground;
+      modal.style.display = 'flex';
+    };
+    document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
+    document.getElementById('saveSettingsBtn').onclick = () => {
+      let newKey = document.getElementById('modalApiKey').value.trim();
+      if(newKey) { geminiKey = newKey; localStorage.setItem('gemini_key', newKey); }
+      adultMode = document.getElementById('adultModeToggle').checked;
+      let newBg = document.getElementById('citySelect').value;
+      currentBackground = newBg;
+      localStorage.setItem('citySkyline', currentBackground);
+      applyAdultMode();
+      setBackground(currentBackground);
+      modal.style.display = 'none';
+      alert("Settings saved! Background & adult mode updated.");
+    };
+    
+    applyAdultMode();
+    setBackground(currentBackground);
+    updateTurnUI();
+    updateScores();
+    drawCourtAndBall();
+    setupPhotoGallery();
+    setupAvatar('kilroidAvatar');
+    setupAvatar('glitchAvatar');
+    setInterval(()=>{ if(!ball.active) drawCourtAndBall(); }, 60);
+  })();
+</script>
+</body>
+</html>
