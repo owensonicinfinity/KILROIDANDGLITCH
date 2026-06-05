@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kilroid & Glitch — AI Basketball Trash Talk</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            background: linear-gradient(145deg, #1a5f2a 0%, #0e3a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(0,0,0,0.55);
+            border-radius: 80px 80px 60px 60px;
+            backdrop-filter: blur(3px);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
+            padding: 20px 25px 30px 25px;
+        }
+        .court {
+            border-radius: 70px 70px 50px 50px;
+            padding: 20px 15px 15px 15px;
+            box-shadow: inset 0 0 0 5px #f0a42a, inset 0 0 0 12px #ffcf7a, 0 10px 20px rgba(0,0,0,0.3);
+            transition: background 0.3s ease;
+        }
+        .court-bg-default { background: #f6b83d; background-image: radial-gradient(circle at 25% 40%, rgba(255,215,130,0.5) 2%, transparent 2.5%); background-size: 35px 35px; }
+        .court-bg-neon { background: #1f3b2c; background-image: linear-gradient(45deg, #00ff9d20 1px, transparent 1px), linear-gradient(-45deg, #ff44cc20 1px, transparent 1px); background-size: 40px 40px; }
+        .court-bg-urban { background: #bc9a6c; background-image: repeating-linear-gradient(90deg, #7c5e3a 1px, #dbb87c 2px, #e4c48f 30px); }
+        .court-bg-forest { background: #2f6b2f; background-image: radial-gradient(circle at 10% 20%, #5f9e4e 3%, transparent 3.5%), radial-gradient(circle at 90% 70%, #7fb074 2%, transparent 2.5%); background-size: 60px 60px; }
+        .hoop-area { display: flex; justify-content: center; }
+        canvas { border-radius: 60px; box-shadow: 0 10px 18px black; width: 100%; height: auto; background-image: radial-gradient(circle at 20% 30%, #8b6946 1.5px, transparent 1.5px); background-size: 28px 28px; cursor: pointer; }
+        .players-row { display: flex; justify-content: space-between; gap: 25px; margin: 20px 10px 15px 10px; flex-wrap: wrap; }
+        .player-card { flex: 1; background: #fff7e8; border-radius: 65px; padding: 20px 15px; text-align: center; box-shadow: 0 12px 0 #c29b3b; transition: all 0.2s; border: 2px solid #ffcd7e; }
+        .player-card.active-turn { background: #fff1b5; box-shadow: 0 0 0 4px gold, 0 12px 0 #c29b3b; transform: scale(1.01); }
+        .player-card.focus-user { transform: scale(1.02) rotate(1deg); box-shadow: 0 0 0 4px #ffdd88, 0 0 0 8px #ffaa33, 0 12px 0 #c29b3b; }
+        .avatar { width: 130px; height: 130px; margin: 0 auto 15px; background: #e0bc82; border-radius: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 5px solid #ffb347; box-shadow: 0 6px 0 #a5651e; cursor: pointer; transition: 0.2s; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-placeholder { font-size: 65px; font-weight: bold; }
+        h2 { font-size: 2.1rem; margin: 10px 0 0; text-shadow: 3px 3px 0 #c27e2e; }
+        .height-badge { background: #f4a261; display: inline-block; border-radius: 60px; padding: 5px 18px; margin: 8px 0; font-weight: bold; color: white; }
+        .score { font-size: 2.8rem; font-weight: bold; background: #2d1f0c; display: inline-block; padding: 0px 25px; border-radius: 50px; color: #f9d56e; margin-top: 5px; }
+        .action-buttons { display: flex; gap: 18px; justify-content: center; margin: 20px 0 5px; }
+        .btn-hoop { font-size: 1.5rem; padding: 12px 20px; font-weight: bold; border-radius: 60px; border: none; background: #ffb142; color: #2c1a0c; font-family: inherit; cursor: pointer; box-shadow: 0 5px 0 #9b5e1a; width: 170px; transition: 0.05s linear; }
+        .btn-hoop:active { transform: translateY(3px); box-shadow: 0 2px 0 #9b5e1a; }
+        .turn-indicator { font-size: 1.7rem; background: #ffd966; display: inline-block; padding: 8px 25px; border-radius: 40px; margin-top: 15px; font-weight: bold; }
+        .speech-bubble { background: white; border-radius: 40px; padding: 10px 20px; max-width: 240px; margin: 12px auto; font-size: 1.1rem; font-weight: bold; color: #1f3b0c; box-shadow: 4px 4px 0 rgba(0,0,0,0.1); min-height: 85px; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .settings-menu { background: #2d2b1ee0; border-radius: 50px; margin-bottom: 20px; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; backdrop-filter: blur(6px); }
+        .api-area { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #00000066; padding: 8px 18px; border-radius: 60px; }
+        .api-area input { padding: 8px 16px; border-radius: 40px; border: none; background: #fff2cf; width: 220px; font-family: monospace; }
+        .bg-selector { display: flex; gap: 8px; align-items: center; background: #00000066; padding: 6px 18px; border-radius: 60px; }
+        .bg-btn { background: #ffaa44; border: none; padding: 6px 14px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .ai-chat-panel { margin-top: 20px; background: #2d2b1ee0; border-radius: 60px; padding: 20px; backdrop-filter: blur(8px); border: 2px solid #ffcf6e; }
+        .chat-log { background: #1e1b0fcc; border-radius: 50px; padding: 15px; height: 180px; overflow-y: auto; margin-bottom: 15px; color: #ffecb3; font-size: 1rem; display: flex; flex-direction: column; gap: 8px; }
+        .chat-message { padding: 6px 14px; border-radius: 30px; background: #3f341d; width: fit-content; max-width: 85%; }
+        .chat-message.user { background: #4d7c2e; align-self: flex-end; }
+        .chat-message.kilroid { background: #b64516; align-self: flex-start; border-left: 8px solid #ffaa44; }
+        .chat-message.glitch { background: #3f6b8f; align-self: flex-start; border-left: 8px solid #aaddff; }
+        .chat-input-area { display: flex; gap: 12px; flex-wrap: wrap; }
+        .chat-input-area input { flex: 3; padding: 12px 20px; border-radius: 60px; border: none; font-size: 1rem; background: #fff3da; }
+        .chat-input-area button { background: #ffaa55; border: none; padding: 10px 20px; border-radius: 60px; font-weight: bold; cursor: pointer; }
+        .mic-btn { background: #55aaff; }
+        .photos-gallery { margin-top: 20px; background: #eab676b3; border-radius: 55px; padding: 15px; backdrop-filter: blur(4px); }
+        .gallery-title { font-size: 1.5rem; font-weight: bold; text-align: center; color: #ffefb9; }
+        .photo-strip { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 12px; }
+        .photo-card { background: #fff0c8; border-radius: 35px; width: 120px; padding: 8px; text-align: center; box-shadow: 0 8px 0 #aa763a; }
+        .photo-card img { width: 100%; height: 90px; object-fit: cover; border-radius: 28px; background: #c49a6c; }
+        .upload-btn { background: #ffc164; border: none; border-radius: 60px; padding: 4px 10px; margin-top: 6px; font-size: 0.7rem; cursor: pointer; }
+        footer { text-align: center; font-size: 0.7rem; margin-top: 15px; color: #ffecb3; }
+        @keyframes bounceAnim { 0% { transform: translateY(0px); } 50% { transform: translateY(-18px); } 100% { transform: translateY(0px); } }
+        .bounce-effect { animation: bounceAnim 0.3s ease; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="settings-menu">
+        <div class="api-area">
+            <input type="password" id="geminiApiKey" placeholder="🔑 Gemini API Key" style="width:200px;">
+            <button id="saveApiBtn" style="background:#ffaa44;">💾 Save</button>
+            <span id="apiStatus" style="font-size:0.7rem;">⚡ No key</span>
+        </div>
+        <div class="bg-selector">
+            <span style="color:white;">🎨 Court:</span>
+            <button class="bg-btn" data-bg="default">🏀 Classic</button>
+            <button class="bg-btn" data-bg="neon">🌈 Neon</button>
+            <button class="bg-btn" data-bg="urban">🏙️ Urban</button>
+            <button class="bg-btn" data-bg="forest">🌲 Forest</button>
+        </div>
+    </div>
+    <div class="court court-bg-default" id="courtElement">
+        <div class="hoop-area"><canvas id="gameCanvas" width="900" height="380" style="width:100%; height:auto; max-width:900px; aspect-ratio:900/380"></canvas></div>
+        <div class="players-row">
+            <div class="player-card" id="kilroidCard">
+                <div class="avatar" id="kilroidAvatar"><div class="avatar-placeholder">🦖</div></div>
+                <h2>⚡ KILROID ⚡</h2>
+                <div class="height-badge">🎈 SHORT KING 👑</div>
+                <div class="score" id="kilroidScore">0</div>
+                <div class="speech-bubble" id="kilroidBubble">🤪 Let's play!</div>
+            </div>
+            <div class="player-card" id="glitchCard">
+                <div class="avatar" id="glitchAvatar"><div class="avatar-placeholder">🦒✨</div></div>
+                <h2>🌀 GLITCH 🌀</h2>
+                <div class="height-badge">🌟 TALL SIS 🌟</div>
+                <div class="score" id="glitchScore">0</div>
+                <div class="speech-bubble" id="glitchBubble">💥 Bring it, lil bro!</div>
+            </div>
+        </div>
+        <div style="text-align:center;">
+            <div class="turn-indicator" id="turnText">🔥 KILROID's TURN 🔥</div>
+            <div class="action-buttons"><button class="btn-hoop" id="slamBtn">🏀 SLAM DUNK 🏀</button><button class="btn-hoop" id="threeBtn">🎯 3-POINTER 🎯</button></div>
+        </div>
+    </div>
+    <div class="ai-chat-panel">
+        <div class="chat-log" id="chatLog"><div class="chat-message kilroid">👋 Hey! I'm Kilroid! Talk to us! 🎙️</div><div class="chat-message glitch">✨ And I'm Glitch! Ask us anything or cheer! ✨</div></div>
+        <div class="chat-input-area"><input type="text" id="userMessage" placeholder="💬 Chat with Kilroid & Glitch... they turn & focus on you!" autocomplete="off"><button id="sendMsgBtn">🗣️ Send</button><button id="micBtn" class="mic-btn">🎤 Speak</button><button id="clearChatBtn" style="background:#aa6644;">🗑️ Clear</button></div>
+    </div>
+    <div class="photos-gallery"><div class="gallery-title">📸 KILROID & GLITCH — 4 SILLY MOMENTS 📸</div><div class="photo-strip" id="photoStrip"></div><p style="font-size:0.7rem; text-align:center;">⬆️ Click any photo to replace with your own image</p></div>
+    <footer>🏀 SUPER SLAM DUNKS • TALK & THEY FOCUS ON YOU • TRASH TALK • AI VOICES 🎙️</footer>
+</div>
+<script>
+    (function(){
+        // ---------- GAME STATE ----------
+        let kilroidScore = 0, glitchScore = 0;
+        let currentTurn = "kilroid";
+        let isAnimating = false;
+        const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+        canvas.width = 900; canvas.height = 380;
+        const hoop = { x: canvas.width/2, y: 78, radius: 14 };
+        const kilroidShootPos = { x: 150, y: canvas.height - 55 };
+        const glitchShootPos = { x: canvas.width - 150, y: canvas.height - 55 };
+        let ball = { active: false, x: 0, y: 0 };
+
+        function drawCourtAndHoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#b97f44"; ctx.fillRect(hoop.x-35, hoop.y-42, 70, 12);
+            ctx.fillStyle = "#5e3a1e"; ctx.fillRect(hoop.x-28, hoop.y-35, 56, 8);
+            ctx.beginPath(); ctx.arc(hoop.x, hoop.y, hoop.radius, 0, Math.PI*2);
+            ctx.strokeStyle = "#ffaa33"; ctx.lineWidth = 5; ctx.stroke();
+            ctx.fillStyle = "#e35112"; ctx.fillRect(hoop.x-13, hoop.y+2, 26, 8);
+            ctx.fillStyle = "#ff7722"; ctx.fillRect(hoop.x-8, hoop.y+5, 16, 20);
+            for(let i=0;i<12;i++){ ctx.beginPath(); ctx.moveTo(hoop.x+Math.sin(i)*12, hoop.y+Math.cos(i)*12+4); ctx.lineTo(hoop.x+Math.sin(i)*7, hoop.y+32); ctx.strokeStyle = "#ccc9b0"; ctx.lineWidth=1.5; ctx.stroke(); }
+            if (ball.active) { ctx.beginPath(); ctx.arc(ball.x, ball.y, 11, 0, Math.PI*2); ctx.fillStyle="#ff8c42"; ctx.fill(); }
+        }
+
+        function animateBall(shooter, shotType, success) {
+            if (isAnimating) return;
+            isAnimating = true;
+            const start = shooter === 'kilroid' ? kilroidShootPos : glitchShootPos;
+            const end = { x: hoop.x, y: hoop.y + (success ? 0 : 25) };
+            let startTime = performance.now();
+            function step(now) {
+                let t = Math.min(1, (now-startTime)/520);
+                let ease = 1-Math.pow(1-t,3);
+                let midX = start.x + (end.x-start.x)*ease;
+                let arc = -Math.sin(t*Math.PI)*55;
+                let yPos = start.y + (end.y-start.y)*ease + arc;
+                ball.active = true; ball.x = midX; ball.y = yPos;
+                drawCourtAndHoop();
+                if(t<1) requestAnimationFrame(step);
+                else { ball.active=false; drawCourtAndHoop(); finishShot(shooter,shotType,success); isAnimating=false; }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function getTrash(player, shot, success) {
+            const dict = {
+                kilroid_make_dunk:["SUPER DUPER SLAM!","BOOMSHAKALAKA!","I'M THE KING!"],
+                kilroid_make_three:["SWISH!","FROM DOWNTOWN!","3 POINTS GLORY!"],
+                kilroid_miss_dunk:["Oopsie! My shoe!","Airball like balloon!"],
+                kilroid_miss_three:["Too short!","BOING wrong way!"],
+                glitch_make_dunk:["TALL GIRL SLAM!","IN YOUR FACE SHORTY!"],
+                glitch_make_three:["SWISH AND GIGGLE!","LONG LEGS LONG SHOT!"],
+                glitch_miss_dunk:["Bonk my head!","Oopsie daisy!"],
+                glitch_miss_three:["Butter fingers!","Too far!"]
+            };
+            let key = `${player}_${shot}_${success?'make':'miss'}`;
+            let arr = dict[key] || (success?["Yay!"]:["Oh no!"]);
+            return arr[Math.floor(Math.random()*arr.length)];
+        }
+        function getOpponentTaunt(target){
+            let taunts = { kilroid:["shorty missed!","so weak!","baby throw!"], glitch:["tall fail!","sister needs glasses!","you clumsy!"] };
+            let arr = taunts[target];
+            return arr[Math.floor(Math.random()*arr.length)];
+        }
+        function showBubbleAndTTS(player, msg, speakNow){
+            let bubble = player==='kilroid' ? document.getElementById('kilroidBubble') : document.getElementById('glitchBubble');
+            bubble.innerHTML = `💬 ${msg} 💬`;
+            if(speakNow && window.speechSynthesis){
+                let u = new SpeechSynthesisUtterance(msg);
+                u.rate = 0.9;
+                u.pitch = player==='kilroid' ? 1.65 : 1.4;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(u);
+            }
+            setTimeout(()=>{ if(bubble.innerHTML.includes(msg)) bubble.innerHTML = player==='kilroid' ? "🏀 dribble 🏀" : "✨ hoop dreams ✨"; }, 2500);
+        }
+        function finishShot(shooter, shotType, success){
+            let points = shotType==='dunk'?2:3;
+            if(success){
+                if(shooter==='kilroid'){ kilroidScore+=points; updateScoreUI(); showBubbleAndTTS('kilroid',getTrash(shooter,shotType,true),true); showBubbleAndTTS('glitch',`😖 ${getOpponentTaunt('glitch')} 😖`,false); }
+                else { glitchScore+=points; updateScoreUI(); showBubbleAndTTS('glitch',getTrash(shooter,shotType,true),true); showBubbleAndTTS('kilroid',`😭 ${getOpponentTaunt('kilroid')} 😭`,false); }
+                document.getElementById(shooter+'Card').classList.add('bounce-effect');
+                setTimeout(()=> document.getElementById(shooter+'Card').classList.remove('bounce-effect'), 300);
+            } else {
+                if(shooter==='kilroid'){ showBubbleAndTTS('kilroid',getTrash(shooter,shotType,false),true); showBubbleAndTTS('glitch',`😂 ${getOpponentTaunt('glitch')} 😂`,false); }
+                else { showBubbleAndTTS('glitch',getTrash(shooter,shotType,false),true); showBubbleAndTTS('kilroid',`🤣 ${getOpponentTaunt('kilroid')} 🤣`,false); }
+            }
+            currentTurn = currentTurn === 'kilroid' ? 'glitch' : 'kilroid';
+            updateTurnUI();
+            drawCourtAndHoop();
+        }
+        function updateScoreUI(){ document.getElementById('kilroidScore').innerText = kilroidScore; document.getElementById('glitchScore').innerText = glitchScore; }
+        function updateTurnUI(){
+            let turnText = document.getElementById('turnText');
+            if(currentTurn==='kilroid'){ turnText.innerHTML='🔥 KILROID\'s TURN 🔥'; document.getElementById('kilroidCard').classList.add('active-turn'); document.getElementById('glitchCard').classList.remove('active-turn'); }
+            else { turnText.innerHTML='🌀 GLITCH\'s TURN 🌀'; document.getElementById('glitchCard').classList.add('active-turn'); document.getElementById('kilroidCard').classList.remove('active-turn'); }
+        }
+        function attemptShot(type){ if(isAnimating) return; let success = Math.random() < (type==='dunk'?0.7:0.48); animateBall(currentTurn,type,success); }
+
+        // ---------- GEMINI AI CHAT ----------
+        let geminiKey = localStorage.getItem('gemini_key') || "";
+        const apiKeyInput = document.getElementById('geminiApiKey');
+        const saveBtn = document.getElementById('saveApiBtn');
+        const apiStatusSpan = document.getElementById('apiStatus');
+        if(geminiKey) { apiKeyInput.value = geminiKey; apiStatusSpan.innerHTML='✅ Key ready'; }
+        saveBtn.onclick = ()=>{ let newKey = apiKeyInput.value.trim(); if(newKey){ geminiKey=newKey; localStorage.setItem('gemini_key',newKey); apiStatusSpan.innerHTML='✅ Key saved'; } else { apiStatusSpan.innerHTML='❌ Invalid key'; } };
+
+        function addChatMessage(sender, text){
+            let log = document.getElementById('chatLog');
+            let div = document.createElement('div');
+            if(sender === 'user'){ div.className='chat-message user'; div.innerText = `🧑 You: ${text}`; }
+            else if(sender === 'kilroid'){ div.className='chat-message kilroid'; div.innerText = `🦖 Kilroid: ${text}`; }
+            else if(sender === 'glitch'){ div.className='chat-message glitch'; div.innerText = `🦒 Glitch: ${text}`; }
+            else { div.className='chat-message'; div.innerText = text; }
+            log.appendChild(div); log.scrollTop = log.scrollHeight;
+        }
+
+        function focusCharacterAttention(character){
+            const kilCard = document.getElementById('kilroidCard'), gliCard = document.getElementById('glitchCard');
+            kilCard.classList.remove('focus-user'); gliCard.classList.remove('focus-user');
+            if(character === 'kilroid') kilCard.classList.add('focus-user');
+            else gliCard.classList.add('focus-user');
+            setTimeout(()=>{ kilCard.classList.remove('focus-user'); gliCard.classList.remove('focus-user'); }, 1500);
+            let avatarDiv = document.getElementById(`${character}Avatar`);
+            if(avatarDiv) avatarDiv.style.transform = "rotate(4deg) scale(1.02)";
+            setTimeout(()=>{ if(avatarDiv) avatarDiv.style.transform = ""; }, 300);
+        }
+
+        async function callGemini(userMessage){
+            if(!geminiKey){ addChatMessage("system","⚠️ Please set Gemini API key in menu first!"); return; }
+            const systemPrompt = `You are Kilroid (short, 5yo boy, energetic, funny) and Glitch (taller sister, 6yo, playful). You are playing basketball. Respond as ONE character (Kilroid or Glitch) with 1-2 short sentences, extremely cartoonish, using emojis. Start your response with the character's nam
